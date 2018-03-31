@@ -26,47 +26,105 @@ public:
         delete function;
     };
 
-    void calculate(cv::Mat &mat,int min,int max)
+    std::vector<cv::Point3f > calculate(cv::Mat &mat,int min,int max)
     {
-        std::vector<cv::Mat> hough_spaces(max - min);
-        for(int i = min; i< max; ++i )
+        if(max>mat.rows)
         {
-            cv::Mat &hough_space = hough_spaces[i-min];
-            hough_space.create(mat.rows,mat.cols,mat.type());
+            max = mat.rows-3;
+        }
+        std::cout<<"min : "<<min <<"max" << max<<std::endl;
+        std::vector<cv::Point3f> circles(100);
+        circles.reserve(10000);
+        std::vector<cv::Mat> hough_spaces(max*2);
+        for(int i=min; i<max*2; ++i)
+        {
+            hough_spaces[i] = cv::Mat::zeros(mat.rows,mat.cols,mat.type());
+        }
+        // const int sz[3] = {mat.rows,mat.cols,max-min};
+        //cv::Mat L(3,sz, CV_8UC(1), cv::Scalar::all(0));
+        for(int x=0; x<mat.rows; ++x)
+        {
 
-
-            for(int x=0; x<mat.cols; ++x)
+            for(int y=0; y<mat.cols; ++y)
             {
 
-                for(int y=0; y<mat.rows; ++y)
-                {
-                    if(mat.at<uchar>(x,y) == 255)
+                if(mat.at<uchar>(x,y) == 255) {
+                    for(int radius=min; radius<max; ++radius)
                     {
-                        accum_circle(hough_space,cv::Point2i(x,y),i);
+                        std::cout<<radius<<"radius"<<std::endl;
+                        for(int theta = 0; theta<360; ++theta)
+                        {
+                            const float a= x - radius * cos(theta * PI_180);
+                            const float b=y- radius *sin(theta * PI_180);
+                            //if(a <0 || a >= mat.rows || b < 0 || b >= mat.cols){
+			    hough_spaces[radius].at<uchar>(a,b)++;
+			   // }
+                            //L.at<uchar>(a,b,radius)+=1;
+                        }
                     }
                 }
             }
-            const int treshold = 5 *i;
-            for(int x=0; x<hough_space.cols; ++x)
-            {
 
-                for(int y=0; y<hough_space.rows; ++y)
-                {
-                    if(hough_space.at<uchar>(x,y) > treshold)
-                    {
-
-			cv::circle(mat,cv::Point2i(x,y),i,cv::Scalar(0,0,255),3,8,0);							
-//draw circle;
-//std::cout<<"CIRCLE!";
-                    }
-
-                }
-
-
-            }
 
         }
+/*
+        const int treshold = 20;
+        for(int radius=(max - min); radius<max; ++radius)
+        {
+            for(int x=mat.rows; x<mat.rows; ++x)
+            {
+                for(int y=mat.cols; y<mat.rows; ++y)
+                {
+                    if(hough_spaces[radius].at<uchar>(x,y) >treshold)
+                    {
+                        std::cout<<"CIRCLE"<<std::endl;
+                        circles.emplace_back(cv::Point3f(x,y,radius));
+                    }
+                }
 
+            }
+        }
+	*/
+        //cv::Mat current_space = L.subm
+        imshow("i",hough_spaces[4]);
+
+        /*
+            for(int radius = min; radius< max; ++radius )
+            {
+                cv::Mat &hough_space = hough_spaces[radius-min];
+                hough_space.create(mat.rows,mat.cols,mat.type());
+
+
+                for(int x=0; x<mat.cols; ++x)
+                {
+
+                    for(int y=0; y<mat.rows; ++y)
+                    {
+                        if(mat.at<uchar>(x,y) == 255)
+                        {
+                            //accum_circle(hough_space,cv::Point2i(y,x),radius);
+
+        	    }
+                    }
+                }
+            imshow("i",hough_space);//hough_space);
+
+            const int treshold = 5 *radius;
+                for(int x=0; x<hough_space.cols; ++x)
+                {
+
+                    for(int y=0; y<hough_space.rows; ++y)
+                    {
+                        if(hough_space.at<uchar>(x,y) > treshold)
+                        {
+
+                            circles.emplace_back(cv::Point3f(x,y,radius));
+                        }
+                    }
+                }
+            }*/
+        circles.shrink_to_fit();
+        return circles;
 
     }
 private :
@@ -110,8 +168,8 @@ private :
     void accum_pixel(cv::Mat &image, const cv::Point2i &position)
     {
         /* bounds checking */
-        if(position.x < 0 || position.x >= image.rows ||
-                position.y < 0 || position.y >= image.cols)
+        if(position.x < 0 || position.x >= image.cols ||
+                position.y < 0 || position.y >= image.rows)
         {
             return;
         }
