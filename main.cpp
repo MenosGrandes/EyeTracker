@@ -2,15 +2,17 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 #include "time/timer.cpp"
-#include "Hough/houghCircular.hpp"
+#include "Hough/Hough.cpp"
+#include "Hough/HoughCircle.hpp"
+#include "Hough/HoughLine.hpp"
 using namespace cv;
 
 
 int main(int, char**)
 {
-
+    lookup::buildArray();
     Clock clock;
-    Hough<int> hough;
+    Hough<HoughCircle> hough;
 
     /*
 
@@ -24,13 +26,19 @@ int main(int, char**)
     Mat gray;
     namedWindow("edges",1);
 
+//namedWindow( "Connected Components", 1 );
+ //   createTrackbar( "Threshold", "Connected Components", &threshval, 255, on_trackbar );
+        //on_trackbar(threshval, 0);
 
 
-
-    //for(;;)
     {
 
-        Mat frame = imread("1.jpg",cv::IMREAD_COLOR)	;
+int bright = 10;
+   
+ cvNamedWindow("video");
+    
+cvCreateTrackbar("brightness", "video", &bright, 255, NULL);
+       Mat frame = imread("3.jpg",cv::IMREAD_COLOR)	;
 //	Mat frame;
 // cap >> frame; // get a new frame from camera
 
@@ -38,10 +46,13 @@ int main(int, char**)
         Mat hough_accum = frame.clone();//(frame.size,frame.type());
 
         GaussianBlur(gray,gray, Size(9,9), 0, 0);
-        Canny(gray,gray,100,150,3);
+
+	
+ 	Canny(gray,gray,100,200,3);
         const double start = clock.getTime();//CLOCK();
-        const int treshold = 20;
-        const std::vector<cv::Point3f> circles = hough.calculate(gray,40,100,treshold);
+        const int treshold = 30;
+        std::vector<cv::Point3f> circles (1000);
+	hough.calculate(gray,30,50,treshold,circles);
         for(auto circle : circles)
         {
             cv::circle(hough_accum,cv::Point2f(circle.x,circle.y),circle.z,cv::Scalar(255,0,0),1,2,0);
