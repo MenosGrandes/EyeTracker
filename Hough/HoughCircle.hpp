@@ -5,6 +5,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "../Helpers/const.hpp"
+#include <string>
 class HoughCircle
 {
 
@@ -26,10 +27,10 @@ void  execute(cv::Mat &mat,int min,int max,int treshold,std::vector<cv::Point3f>
                     {
                         for(int theta = 0; theta<360; ++theta)
                         {
-                            const int a = floor(x - radius * lookup::cosArray[theta]);//bin cos(theta * PI_180));//radius * cos can be precomputed and used multiple times
-                            const int b = floor(y - radius * lookup::sinArray[theta]);//sin(theta * PI_180));
+                            const int a = x - radius * lookup::cosArray[theta];
+                            const int b = y - radius * lookup::sinArray[theta];
                             if(a <0 || a >= hough_spaces[radius].rows ||
-                                    b < 0 || b >= hough_spaces[radius].cols)
+                              b < 0 || b >= hough_spaces[radius].cols)
                             {
                                 break;
                             }
@@ -43,15 +44,21 @@ void  execute(cv::Mat &mat,int min,int max,int treshold,std::vector<cv::Point3f>
         for(int radius=min; radius<max; ++radius)
         {
             double min_f,max_f;
-            cv::Point min_loc,max_loc;
-            cv::minMaxLoc(hough_spaces[radius],&min_f,&max_f,&min_loc,&max_loc);
-            if(max_f>treshold)
+	    cv::Point min_loc,max_loc;
+	    cv::minMaxLoc(hough_spaces[radius],&min_f,&max_f,&min_loc,&max_loc);
+	    if(max_f>=treshold)
             {
                 circles.emplace_back(cv::Point3f(max_loc.x,max_loc.y,radius));
             }
-        }
-        circles.shrink_to_fit(); 
+	    debug::showImage(std::to_string(radius).c_str(),hough_spaces[radius]);
+	}
+        circles.shrink_to_fit();
+       
     }
+void  execute(cv::Mat &mat,int max,int treshold,std::vector<cv::Point3f> &circles) const
+{
+
+}
 };
 #endif
 

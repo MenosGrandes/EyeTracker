@@ -2,6 +2,8 @@
 #define CONST_HPP
 #include <opencv2/core/core.hpp>
 #define PI_180 CV_PI / 180
+
+//#define DEBUG
 namespace lookup
 {
 	bool arrayBuild = false;
@@ -15,6 +17,15 @@ namespace lookup
         		cosArray[i] = cos(i*PI_180);
     		}
     		arrayBuild = true;
+	}
+}
+namespace debug
+{
+	void showImage(const char*name,const cv::Mat &mat)
+	{
+#ifdef DEBUG
+		imshow(name,mat);
+#endif //DEBUG
 	}
 }
 #endif

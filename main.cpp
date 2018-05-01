@@ -7,7 +7,7 @@
 #include "Hough/HoughLine.hpp"
 using namespace cv;
 
-
+#define DEBUG
 int main(int, char**)
 {
     lookup::buildArray();
@@ -39,31 +39,36 @@ int bright = 10;
     
 cvCreateTrackbar("brightness", "video", &bright, 255, NULL);
        Mat frame = imread("3.jpg",cv::IMREAD_COLOR)	;
-//	Mat frame;
-// cap >> frame; // get a new frame from camera
 
         cvtColor(frame, gray, COLOR_BGR2GRAY);
         Mat hough_accum = frame.clone();//(frame.size,frame.type());
 
-        GaussianBlur(gray,gray, Size(9,9), 0, 0);
+        GaussianBlur(gray,gray, Size(9,9), 2, 2);
 
-	
- 	Canny(gray,gray,100,200,3);
+	Mat edges, dx, dy;
+	const int kernelSize = 5;
+	Sobel(gray, dx, CV_16S, 1, 0, kernelSize, 1, 0, BORDER_REPLICATE);
+    	Sobel(gray, dy, CV_16S, 0, 1, kernelSize, 1, 0, BORDER_REPLICATE);
+	imshow("SobelX",dx);
+	imshow("Sobely",dy);
+	//Canny(dx, dy, edges, std::max(1, cannyThreshold / 2), cannyThreshold, false);	
+ 	Canny(gray,gray,100,200,kernelSize);
         const double start = clock.getTime();//CLOCK();
-        const int treshold = 30;
+        const int treshold = 150;
         std::vector<cv::Point3f> circles (1000);
-	hough.calculate(gray,30,50,treshold,circles);
+	hough.calculate(gray,0,100,treshold,circles);
         for(auto circle : circles)
         {
             cv::circle(hough_accum,cv::Point2f(circle.x,circle.y),circle.z,cv::Scalar(255,0,0),1,2,0);
         }
 
         const double dur = clock.getTime()- start;
-        //putText(gray,std::to_string(dur).c_str(),cv::Point(100,100),cv::FONT_HERSHEY_PLAIN,2,cv::Scalar(0,0,0,255));
-        std::cout<<std::to_string(dur).c_str()<<std::endl;
+        
+	std::cout<<std::to_string(dur).c_str()<<std::endl;
         imshow("edges", gray);
         imshow("hough_space",hough_accum);
-        waitKey(0); //break;
+        
+	waitKey(0); //break;
     }
     return 0;
 }
