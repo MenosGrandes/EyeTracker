@@ -3,7 +3,7 @@
 #include <opencv2/core/core.hpp>
 #define PI_180 CV_PI / 180
 
-//#define DEBUG
+#define DEBUG
 namespace lookup
 {
 	bool arrayBuild = false;
