@@ -59,44 +59,77 @@ public:
     {
 
         cv::Mat sobelX,sobelY;
-        Sobel(mat, sobelX, CV_32F, 1, 0, kernelSize, 1, 0, cv::BORDER_REPLICATE);
-        Sobel(mat, sobelY, CV_32F, 0, 1, kernelSize, 1, 0, cv::BORDER_REPLICATE);
-        //cv::Canny(mat,mat,100,200,kernelSize,false);
+        Sobel(mat, sobelX, CV_16S, 1, 0, kernelSize, 1, 0, cv::BORDER_REPLICATE);
+        Sobel(mat, sobelY, CV_16S, 0, 1, kernelSize, 1, 0, cv::BORDER_REPLICATE);
+        cv::Canny(mat,mat,100,200,kernelSize,false);
         debug::showImage("sobelX",sobelX);
         debug::showImage("SobelY",sobelY);
         debug::showImage("MAT",mat);
-        cv::Mat magnitudeMap,angleMap;
-	magnitudeMap = cv::Mat::zeros(mat.rows,mat.cols,mat.type());
-	angleMap = cv::Mat::zeros(mat.rows,mat.cols,mat.type());
+        cv::Mat magnitudeMap,angleMap,magnitudeMap2,angleMap2;
+        magnitudeMap = cv::Mat::zeros(mat.rows,mat.cols,CV_8U);
+        angleMap = cv::Mat::zeros(mat.rows,mat.cols,CV_8U);
         std::vector<cv::Mat> hough_spaces(max);
+//	cv::cartToPolar(sobelX,sobelY,magnitudeMap2,angleMap2,false);
+//	debug::showImage("m2",magnitudeMap2);
+//	debug::showImage("a2",angleMap2);
+
+
         for(int i=0; i<max; ++i)
         {
-            hough_spaces[i] = cv::Mat::zeros(mat.rows,mat.cols,mat.type());
+            hough_spaces[i] = cv::Mat::zeros(mat.rows,mat.cols,CV_8U);
         }
+        ////////
         for(int x=0; x<mat.rows; ++x)
         {
             for(int y=0; y<mat.cols; ++y)
             {
 
-                const float magnitude = sqrt(sobelX.at<uchar>(x,y)*sobelX.at<uchar>(x,y)+sobelY.at<uchar>(x,y)*sobelY.at<uchar>(x,y));
-                const float theta= atan2(sobelY.at<uchar>(x,y),sobelX.at<uchar>(x,y)) * 180/CV_PI;
-                magnitudeMap.at<uchar>(x,y) = magnitude;
-                if(magnitude > 225)//mat.at<const uchar>(x,y) == 255)
+                if(!mat.at<uchar>(x,y))
                 {
-                    for(int radius=min; radius<max; ++radius)
-                    {
 
-                        const int a = x - radius * cos(theta);//lookup::cosArray[static_cast<int>(theta)];//+ 0.5f;
-                        const int b = y - radius * sin(theta);//lookup::sinArray[static_cast<int>(theta)]; //+ 0.5f;
+                    const float gradientX = sobelX.at<const short>(x,y);
+                    const float gradientY = sobelY.at<const short>(x,y);
+                    if(gradientX ==0 && gradientY == 0)
+                    {
+                        continue;
+                    }
+                    const float magnitude = std::sqrt(gradientX*gradientX + gradientY*gradientY);
+                    const float angle = atan2(gradientY,gradientX);// + 0.5f;
+                    if(magnitude<1.0f)
+                    {
+                        continue;
+                    }
+                    magnitudeMap.at<uchar>(x,y) = magnitude;
+                    angleMap.at<uchar>(x,y)= angle;
+
+
+
+                    for(int radius = min; radius<max; ++radius)
+                    {
+                        const int a = x - radius * sin(angle);//lookup::cosArray[angle];//+ 0.5f;
+                        const int b = y - radius * cos(angle);//lookup::sinArray[angle]; //+ 0.5f;
                         if(a >= 0 && a <hough_spaces[radius].rows && b >= 0 && b<hough_spaces[radius].cols)                             {
                             hough_spaces[radius].at<uchar>(a,b)+=10;
                         }
 
 
                     }
+
+
+
+
+
+
+
+
+
+
+
                 }
             }
         }
+
+        debug::showImage("angleMAp",angleMap);
         debug::showImage("magnitude",magnitudeMap);
         for(int radius=min; radius<max; ++radius)
         {
@@ -106,7 +139,7 @@ public:
             if(max_f>=treshold)
             {
                 circles.emplace_back(cv::Point3f(max_loc.x,max_loc.y,radius));
-                // debug::showImage(std::to_string(radius).c_str(),hough_spaces[radius]);
+                debug::showImage(std::to_string(radius).c_str(),hough_spaces[radius]);
 
             }
         }
