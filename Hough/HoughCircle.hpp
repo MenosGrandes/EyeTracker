@@ -28,9 +28,10 @@ public:
                     {
                         for(int theta = 0; theta<360; ++theta)
                         {
-                            const int a = x - radius * lookup::cosArray[theta];//+ 0.5f;
-                            const int b = y - radius * lookup::sinArray[theta]; //+ 0.5f;
-                            if(a >= 0 && a <hough_spaces[radius].rows && b >= 0 && b<hough_spaces[radius].cols)                             {
+                            const int a = x - radius * lookup::sinArray[theta];//+ 0.5f;
+                            const int b = y - radius * lookup::cosArray[theta]; //+ 0.5f;
+                            if(a >= 0 && a <hough_spaces[radius].rows && b >= 0 && b<hough_spaces[radius].cols)
+			    {
                                 hough_spaces[radius].at<uchar>(a,b)++;
                             }
 
@@ -62,17 +63,7 @@ public:
         Sobel(mat, sobelX, CV_16S, 1, 0, kernelSize, 1, 0, cv::BORDER_REPLICATE);
         Sobel(mat, sobelY, CV_16S, 0, 1, kernelSize, 1, 0, cv::BORDER_REPLICATE);
         cv::Canny(mat,mat,100,200,kernelSize,false);
-        debug::showImage("sobelX",sobelX);
-        debug::showImage("SobelY",sobelY);
-        debug::showImage("MAT",mat);
-        cv::Mat magnitudeMap,angleMap,magnitudeMap2,angleMap2;
-        magnitudeMap = cv::Mat::zeros(mat.rows,mat.cols,CV_8U);
-        angleMap = cv::Mat::zeros(mat.rows,mat.cols,CV_8U);
         std::vector<cv::Mat> hough_spaces(max);
-//	cv::cartToPolar(sobelX,sobelY,magnitudeMap2,angleMap2,false);
-//	debug::showImage("m2",magnitudeMap2);
-//	debug::showImage("a2",angleMap2);
-
 
         for(int i=0; i<max; ++i)
         {
@@ -83,7 +74,6 @@ public:
         {
             for(int y=0; y<mat.cols; ++y)
             {
-
                 if(!mat.at<uchar>(x,y))
                 {
 
@@ -94,43 +84,31 @@ public:
                         continue;
                     }
                     const float magnitude = std::sqrt(gradientX*gradientX + gradientY*gradientY);
-                    const float angle = atan2(gradientY,gradientX);// + 0.5f;
+                    const int angle = floor(atan2(gradientY,gradientX)*180/CV_PI);
                     if(magnitude<1.0f)
                     {
                         continue;
                     }
-                    magnitudeMap.at<uchar>(x,y) = magnitude;
-                    angleMap.at<uchar>(x,y)= angle;
-
-
-
                     for(int radius = min; radius<max; ++radius)
                     {
-                        const int a = x - radius * sin(angle);//lookup::cosArray[angle];//+ 0.5f;
-                        const int b = y - radius * cos(angle);//lookup::sinArray[angle]; //+ 0.5f;
-                        if(a >= 0 && a <hough_spaces[radius].rows && b >= 0 && b<hough_spaces[radius].cols)                             {
-                            hough_spaces[radius].at<uchar>(a,b)+=10;
+                        const int a = x - radius * lookup::sinArray[angle];
+			const int b = y - radius * lookup::cosArray[angle];
+			if(a >= 0 && a <hough_spaces[radius].rows && b >= 0 && b<hough_spaces[radius].cols)
+			{
+                            hough_spaces[radius].at<uchar>(a,b)++;
                         }
 
-
+		   //Don't know the direction of the gradient so go another side
+		   	const int a2 = x - radius * lookup::sinArray[angle+180];
+                        const int b2 = y - radius * lookup::cosArray[angle+180];
+                        if(a2 >= 0 && a2 <hough_spaces[radius].rows && b2 >= 0 && b2<hough_spaces[radius].cols)
+			{
+                            hough_spaces[radius].at<uchar>(a2,b2)++;
+                        }
                     }
-
-
-
-
-
-
-
-
-
-
-
                 }
             }
         }
-
-        debug::showImage("angleMAp",angleMap);
-        debug::showImage("magnitude",magnitudeMap);
         for(int radius=min; radius<max; ++radius)
         {
             double min_f,max_f;

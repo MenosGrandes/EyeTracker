@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -g -Wall -std=c++11
+CFLAGS =  -g -Wall -std=c++11 -ltbb
 SRCS = main.cpp
 PROG = eyeDetection
 BIN = bin
