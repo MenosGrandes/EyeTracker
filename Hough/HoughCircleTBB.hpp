@@ -10,7 +10,9 @@
 #include "../Helpers/const.hpp"
 #include <string>
 #include <iostream>
-class HoughCircleTBB
+
+
+class HoughCircleMultiThreadInvoker
 {
 private:
     cv::Mat mat;
@@ -18,18 +20,15 @@ private:
     cv::Point3f* circles;
     cv::Mat * spaces;
     cv::Mat canny,sobelX,sobelY;
+
+
+
 public:
 
-    ~HoughCircleTBB() {};
+    ~HoughCircleMultiThreadInvoker() {};
 
-    HoughCircleTBB(const cv::Mat & _mat,int _min,int _max,int _kernelSize,int _treshold,cv::Point3f * _circles,cv::Mat * _spaces):mat(_mat),min(_min),max(_max),kernelSize(_kernelSize),treshold(_treshold),circles(_circles),spaces(_spaces)
-    {
-
-        Sobel(mat, sobelX, CV_16S, 1, 0, kernelSize, 1, 0, cv::BORDER_REPLICATE);
-        Sobel(mat, sobelY, CV_16S, 0, 1, kernelSize, 1, 0, cv::BORDER_REPLICATE);
-        cv::Canny(mat,mat,100,200,kernelSize,false);
-
-    }
+    HoughCircleMultiThreadInvoker(const cv::Mat & _mat,const cv::Mat &_canny,const cv::Mat &_sobelX,const cv::Mat &_sobelY,int _min,int _max,int _kernelSize,int _treshold,cv::Point3f * _circles,cv::Mat * _spaces):mat(_mat),min(_min),max(_max),kernelSize(_kernelSize),treshold(_treshold),circles(_circles),spaces(_spaces),canny(_canny),sobelX(_sobelX),sobelY(_sobelY)
+    {}
 
     void operator() (const tbb::blocked_range<int>& r) const
     {
@@ -84,4 +83,39 @@ public:
 
     }
 };
+
+class HoughCircleTBB
+{
+public:
+
+    HoughCircleTBB() {};
+    ~HoughCircleTBB() {};
+
+    void execute(cv::Mat &mat,int min,int max,int treshold,std::vector<cv::Point3f> &circles,int kernelSize) const
+    {
+        cv::Point3f *circles2 = new cv::Point3f[1000];
+        cv::Mat * spaces = new cv::Mat[1000];
+        for(int i=0; i<1000; i++)
+        {
+            spaces[i] = cv::Mat::zeros(mat.rows,mat.cols,CV_8U);
+        }
+
+        cv::Mat sobelX,sobelY;
+        Sobel(mat, sobelX, CV_16S, 1, 0, kernelSize, 1, 0, cv::BORDER_REPLICATE);
+        Sobel(mat, sobelY, CV_16S, 0, 1, kernelSize, 1, 0, cv::BORDER_REPLICATE);
+        cv::Canny(mat,mat,100,200,kernelSize,false);
+
+        const int threadNum = std::max(1,cv::getNumThreads());
+        tbb::parallel_for(tbb::blocked_range<int>(min,max,1),HoughCircleMultiThreadInvoker(mat,mat,sobelX,sobelY,min,max,kernelSize,treshold,circles2,spaces));
+
+        for(int i=min; i<max; i++)
+        {
+            circles.emplace_back(circles2[i]);
+        }
+
+        delete []circles2;
+        delete [] spaces;
+    }
+};
+
 #endif

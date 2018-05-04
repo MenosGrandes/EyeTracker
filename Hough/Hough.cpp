@@ -26,7 +26,7 @@ public:
         delete function;
     };
 
-    std::vector<cv::Point3f > calculate(cv::Mat &mat,int min,int max,int treshold,std::vector<cv::Point3f> &points) const
+    std::vector<cv::Point3f > calculate(cv::Mat &mat,int min,int max,int treshold,std::vector<cv::Point3f> &points,int kernelSize) const
     {
         if(!lookup::arrayBuild)
         {
@@ -38,7 +38,7 @@ public:
             max = std::min(mat.cols ,mat.rows)/2;
         }
         //std::vector<cv::Point3f> points(1000);
-        function->execute(mat,min,max,treshold,points);
+        function->execute(mat,min,max,treshold,points,kernelSize);
 
         return points;
 
