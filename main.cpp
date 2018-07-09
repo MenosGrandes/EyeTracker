@@ -10,11 +10,13 @@
 #include <unistd.h>
 using namespace cv;
 
-#define DEBUG
+#include "Starburst/Starburst.cpp"
 //#define GRADIENT_TBB
 #define GRADIENT
 
-int main(int, char**)
+using namespace cv;
+
+void runHough()
 {
     Clock clock;
 
@@ -34,25 +36,25 @@ int main(int, char**)
         Mat hough_accum = frame.clone();//(frame.size,frame.type());
 
         GaussianBlur(gray,gray, Size(9,9), 2, 2);
-
-        int kernelSize = 5;
-        int treshold = 10;
-        int minValue = 30;
+	cv::Sobel(gray,gray,CV_16S,1,0);	
+        const int treshold = 1;
         int maxValue = 40;
         std::vector<cv::Point3f> circles (1000);
+     
 
-        lookup::buildArray();
+const int kernelSize = 5;
+const int cannyThreshold = 200;
+	cv::Mat dx,dy;
+//	cv::Sobel(gray, dx, CV_16S, 1, 0, kernelSize, 1, 0, BORDER_REPLICATE);
 
-        double start = clock.getTime();//CLOCK();
-#ifdef GRADIENT
-        Hough<HoughCircleGradient> hough;
-        hough.calculate(gray,minValue,maxValue,treshold,circles,kernelSize);
-#endif
-#ifdef NO_GRADIENT
-        Hough<HoughCircle> h_circle;
-        Canny(gray,gray,100,200,kernelSize);
-        h_circle.calculate(gray,minValue,maxValue,treshold,circles,kernelSize);
-#endif
+//	cv::Sobel(gray, dy, CV_16S, 0, 1, kernelSize, 1, 0, BORDER_REPLICATE);
+
+//	cv::Canny(dx, dy, gray, std::max(1, cannyThreshold / 2), cannyThreshold, false);
+	imshow("canny",gray);	
+//	hough.calculate(gray,30,45,treshold,circles,dy,dx);
+
+
+double start = clock.getTime();//CLOCK();
 #ifdef GRADIENT_TBB
         Hough<HoughCircleTBB> hough;
         hough.calculate(gray,minValue,maxValue,treshold,circles,kernelSize);
@@ -84,7 +86,33 @@ int main(int, char**)
         imshow("hough_space",hough_accum);
         waitKey(0); //break;
     }
-    return 0;
 }
 
 
+
+
+
+
+void runStarburst(){
+Starburst starburst;
+
+cv::Mat image = imread("3.jpg",cv::IMREAD_COLOR);
+cvtColor(image,image,COLOR_BGR2GRAY);
+starburst.calculate(image,20,55);
+
+
+        imshow("edges", image);
+        waitKey(0); //break;
+ 
+
+
+}
+int main()
+{
+runStarburst();
+runHough();
+
+
+
+return 0;
+}
