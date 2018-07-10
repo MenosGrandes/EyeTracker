@@ -110,7 +110,7 @@ starburst.calculate(image,20,55);
 int main()
 {
 runStarburst();
-runHough();
+//runHough();
 
 
 
