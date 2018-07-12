@@ -1,13 +1,21 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/opencv.hpp>
 #include "../Helpers/const.hpp"
+
+
+struct IntensityAndPoint
+{
+	const int intensity;
+	const cv::Point2f point;
+	IntensityAndPoint (const int _intensity,const cv::Point2f _point):intensity(_intensity),point(_point){};
+};
 class Starburst
 {
 public:
     Starburst(cv::Point2f);
     Starburst();
     void sendRay(const int raysCount) const;
-    void calculate( cv::Mat&,const int,const int) const;
+    void calculate( const cv::Mat&,const int,const int,const int) const;
 
 private:
     cv::Point2f center;

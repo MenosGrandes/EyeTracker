@@ -36,25 +36,25 @@ void runHough()
         Mat hough_accum = frame.clone();//(frame.size,frame.type());
 
         GaussianBlur(gray,gray, Size(9,9), 2, 2);
-	cv::Sobel(gray,gray,CV_16S,1,0);	
+        cv::Sobel(gray,gray,CV_16S,1,0);
         const int treshold = 1;
         int maxValue = 40;
         std::vector<cv::Point3f> circles (1000);
-     
 
-const int kernelSize = 5;
-const int cannyThreshold = 200;
-	cv::Mat dx,dy;
+
+        const int kernelSize = 5;
+        const int cannyThreshold = 200;
+        cv::Mat dx,dy;
 //	cv::Sobel(gray, dx, CV_16S, 1, 0, kernelSize, 1, 0, BORDER_REPLICATE);
 
 //	cv::Sobel(gray, dy, CV_16S, 0, 1, kernelSize, 1, 0, BORDER_REPLICATE);
 
 //	cv::Canny(dx, dy, gray, std::max(1, cannyThreshold / 2), cannyThreshold, false);
-	imshow("canny",gray);	
+        imshow("canny",gray);
 //	hough.calculate(gray,30,45,treshold,circles,dy,dx);
 
 
-double start = clock.getTime();//CLOCK();
+        double start = clock.getTime();//CLOCK();
 #ifdef GRADIENT_TBB
         Hough<HoughCircleTBB> hough;
         hough.calculate(gray,minValue,maxValue,treshold,circles,kernelSize);
@@ -74,6 +74,7 @@ double start = clock.getTime();//CLOCK();
             circle( hough_accum, center, radius, Scalar(0,0,255), 3, 8, 0 );
         }
 #endif
+
         const double dur = clock.getTime()- start;
         std::cout<<std::to_string(dur).c_str()<<std::endl;
 //////////////
@@ -93,26 +94,31 @@ double start = clock.getTime();//CLOCK();
 
 
 
-void runStarburst(){
-Starburst starburst;
+void runStarburst() {
+    Starburst starburst;
 
-cv::Mat image = imread("3.jpg",cv::IMREAD_COLOR);
-cvtColor(image,image,COLOR_BGR2GRAY);
-starburst.calculate(image,20,55);
+    cv::Mat image = imread("3.jpg",cv::IMREAD_COLOR);
+    cvtColor(image,image,COLOR_BGR2GRAY);
 
+    Clock clock;
+    double start = clock.getTime();
+    starburst.calculate(image,50,20,2);
+    const double dur = clock.getTime()- start;
+    std::cout<<dur<<std::endl;
+    imshow("edges", image);
+    waitKey(0); //break;
 
-        imshow("edges", image);
-        waitKey(0); //break;
- 
 
 
 }
 int main()
 {
-runStarburst();
-//runHough();
+
+	runStarburst();
+    //runHough();
 
 
 
-return 0;
+
+    return 0;
 }

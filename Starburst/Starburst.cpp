@@ -1,77 +1,107 @@
 #include "Starburst.h"
 #include <iostream>
-
+#include <stdlib.h>
 Starburst::Starburst(cv::Point2f _center):center(_center) {};
 Starburst::Starburst() {};
-void Starburst::calculate( cv::Mat &image,const int rayCount,const int treshold) const
+
+
+
+void Starburst::calculate( const cv::Mat &image,const int rayCount,const int treshold,const int currentRadius) const
 {
     cv::Mat draw = image.clone();
     cvtColor(draw,draw,cv::COLOR_GRAY2BGR);
     cv::Mat draw2 = image.clone();
     cvtColor(draw2,draw2,cv::COLOR_GRAY2BGR);
 
-    const cv::Size size =  image.size();
-    const cv::Point2f center(size.height/2,size.width/2);
-    const float maxRadius = center.x;
+    cv::Point2f center(image.cols/2,image.rows/2);
 
-
-    std::vector<cv::Point2f> edgePoints;
-    edgePoints.reserve(100);
-
-
-    float angle = 0*PI_180;
+    
+    std::vector<IntensityAndPoint> intensityAndPoint_v;
+    intensityAndPoint_v.reserve(1000);
     float angleStep = 360/rayCount;
-    cv::Point2f previousPixel;
+
+    cv::circle(draw,center,5,cv::Scalar(10,255,0));
 
 
-    for( int ray=0; ray<rayCount; ray++,angle+=angleStep* PI_180)
+
+
+
+    const int minimumCandidates = 5;
+    ////////////////////////////////
+    cv::Point2f pixel;
+
+    for(int angle =0; angle<360; angle+=angleStep)
     {
-        for(int radius =0; radius<maxRadius; radius+=1)
-        {
-            const cv::Point2f pixel (center.x + radius*sin(angle) , center.y + radius*cos(angle) );
-            const cv::Scalar color(image.at<uchar>(pixel));
-            if(color.val[0]>treshold)
-            {
 
-                debug::drawMarker(draw,previousPixel,cv::Scalar(255,255,0));
-                debug::drawLine(draw,center,previousPixel,cv::Scalar(200,100,100));
-                edgePoints.emplace_back(previousPixel);
+        const cv::Point2f distance (currentRadius*cos(angle),currentRadius*sin(angle));
+
+        pixel= center + distance;// (center.x + distance.x,center.y + distance.y);
+        const cv::Scalar colorOfPixel (image.at<uchar>(pixel));
+        while(1)
+        {
+            pixel+=  distance;//cv::Point2f(pixel.x + distance.x,pixel.y + distance.y);
+            if(pixel.x >image.cols || pixel.y >image.rows || pixel.x < 0 || pixel.y <0)
+            {
                 break;
             }
-            else
+            const cv::Scalar differenceInColors=static_cast<const cv::Scalar>(image.at<uchar>(pixel)) - colorOfPixel;
+
+           if(static_cast<int>((differenceInColors)[0]) > treshold)
             {
-                previousPixel = pixel;
+                const cv::Point2f edgePoint = pixel - distance/2;// ( pixel.x - distance.x/2,pixel.y - distance.y/2);
+                debug::drawMarker(draw,edgePoint,cv::Scalar(255,255,0));
+                debug::drawLine(draw,center,edgePoint,cv::Scalar(200,100,100));
+                intensityAndPoint_v.emplace_back(static_cast<int>(differenceInColors[0]), edgePoint);
+                break;
+
             }
         }
     }
-    cv::circle(draw,center,2,cv::Scalar(10,255,0));
-
-    angleStep=50;
-    angle=0;
-    for(cv::Point2f edgePoint : edgePoints)
+    if(intensityAndPoint_v.size() < minimumCandidates)
     {
-        for( int ray=0; ray<rayCount; ray++,angle+=angleStep* PI_180)
+        std::cerr<<"Not enought candidates to do RASNAC";
+    }
+/*
+///////////////////
+const int angleSpread = 100*PI_180;
+    angleStep = 50;
+    for(const IntensityAndPoint newCenter : intensityAndPoint_v)
+    {
+	//IntensityAndPoint newCenter = intensityAndPoint_v[0];
+        const float angleNormal = atan2(center.y - newCenter.point.y, center.x - newCenter.point.x);
+	std::cout<<angleStep<<" "<<newCenter.intensity<<std::endl;
+	const float newAngleStep = angleStep*(20/newCenter.intensity); 
+
+	std::cout<<newAngleStep<<std::endl;
+        cv::Point2f pixel;
+        for(float angle=angleNormal -angleSpread/2 +0.001;angle<angleNormal+ angleSpread/2;angle+=newAngleStep) //)
         {
-            for(int radius =0; radius<maxRadius; radius++)
+            const cv::Point2f distance (currentRadius*cos(angle),currentRadius*sin(angle));
+            pixel= newCenter.point + distance;// (newCenter.x + distance.x,newCenter.y + distance.y);
+            const cv::Scalar colorOfPixel (image.at<uchar>(pixel));
+            while(1)
             {
-                const cv::Point2f pixel (edgePoint.x + radius*sin(angle) , edgePoint.y + radius*cos(angle) );
-                const cv::Scalar color(image.at<uchar>(pixel));
-                if(color.val[0]>treshold)
+                pixel+=  distance;//cv::Point2f(pixel.x + distance.x,pixel.y + distance.y);
+                if(pixel.x >image.cols || pixel.y >image.rows || pixel.x < 0 || pixel.y <0)
                 {
-                    debug::drawMarker(draw2,previousPixel,cv::Scalar(255,255,0));
-                    debug::drawLine(draw2,edgePoint,previousPixel,cv::Scalar(200,100,100));
-                    edgePoints.emplace_back(pixel);
                     break;
                 }
-		else
-		{
-		previousPixel = pixel;
-		}
+		const cv::Scalar differenceInColors=static_cast<const cv::Scalar>(image.at<uchar>(pixel)) - colorOfPixel;
+
+                if(differenceInColors[0] > treshold)
+                {
+                    const cv::Point2f edgePoint = pixel - distance/2;// ( pixel.x - distance.x/2,pixel.y - distance.y/2);
+                    debug::drawMarker(draw2,edgePoint,cv::Scalar(255,255,0));
+                    debug::drawLine(draw2,newCenter.point,edgePoint,cv::Scalar(200,100,100));
+		    intensityAndPoint_v.emplace_back(static_cast<int>(differenceInColors[0]), edgePoint);
+                    break;
+
+                }
             }
         }
-    }
 
-    std::cout<<edgePoints.size()<<std::endl;
+    }
+*/
     imshow("initial",draw);
     imshow("second",draw2);
 
