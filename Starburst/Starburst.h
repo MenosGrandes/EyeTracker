@@ -5,9 +5,9 @@
 
 struct IntensityAndPoint
 {
-	const int intensity;
+	const float intensity;
 	const cv::Point2f point;
-	IntensityAndPoint (const int _intensity,const cv::Point2f _point):intensity(_intensity),point(_point){};
+	IntensityAndPoint (const float _intensity,const cv::Point2f _point):intensity(_intensity),point(_point){};
 };
 class Starburst
 {

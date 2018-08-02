@@ -12,9 +12,6 @@ using namespace cv;
 
 #include "Starburst/Starburst.cpp"
 //#define GRADIENT_TBB
-#define GRADIENT
-
-using namespace cv;
 
 void runHough()
 {
@@ -34,47 +31,17 @@ void runHough()
 
         cvtColor(frame, gray, COLOR_BGR2GRAY);
         Mat hough_accum = frame.clone();//(frame.size,frame.type());
-
-        GaussianBlur(gray,gray, Size(9,9), 2, 2);
-        cv::Sobel(gray,gray,CV_16S,1,0);
         const int treshold = 1;
-        int maxValue = 40;
+        int maxValue = 100;
+	int minValue = 35;
         std::vector<cv::Point3f> circles (1000);
 
 
         const int kernelSize = 5;
-        const int cannyThreshold = 200;
-        cv::Mat dx,dy;
-//	cv::Sobel(gray, dx, CV_16S, 1, 0, kernelSize, 1, 0, BORDER_REPLICATE);
-
-//	cv::Sobel(gray, dy, CV_16S, 0, 1, kernelSize, 1, 0, BORDER_REPLICATE);
-
-//	cv::Canny(dx, dy, gray, std::max(1, cannyThreshold / 2), cannyThreshold, false);
-        imshow("canny",gray);
-//	hough.calculate(gray,30,45,treshold,circles,dy,dx);
-
 
         double start = clock.getTime();//CLOCK();
-#ifdef GRADIENT_TBB
-        Hough<HoughCircleTBB> hough;
-        hough.calculate(gray,minValue,maxValue,treshold,circles,kernelSize);
-#endif
-#ifdef HOUGH_OPENCV
-        /// Apply the Hough Transform to find the circles
-        cv::HoughCircles( gray, circles, CV_HOUGH_GRADIENT, 1, gray.rows/8, 200,60, 0, 200 );
-
-        /// Draw the circles detected
-        for( size_t i = 0; i < circles.size(); i++ )
-        {
-            Point center((circles[i].x), (circles[i].y));
-            int radius = (circles[i].z);
-            // circle center
-            circle( hough_accum, center, 3, Scalar(0,255,0), -1, 8, 0 );
-            // circle outline
-            circle( hough_accum, center, radius, Scalar(0,0,255), 3, 8, 0 );
-        }
-#endif
-
+        	Hough<HoughCircleTBB> hough;
+        	hough.calculate(gray,minValue,maxValue,treshold,circles,kernelSize); 
         const double dur = clock.getTime()- start;
         std::cout<<std::to_string(dur).c_str()<<std::endl;
 //////////////
@@ -83,7 +50,6 @@ void runHough()
             cv::circle(hough_accum,cv::Point2f(circle.x,circle.y),circle.z,cv::Scalar(255,0,0),1,2,0);
             cv::circle(hough_accum,cv::Point2f(circle.x,circle.y),1,cv::Scalar(0,255,0),1,2,0);
         }
-        imshow("edges", gray);
         imshow("hough_space",hough_accum);
         waitKey(0); //break;
     }
@@ -97,15 +63,18 @@ void runHough()
 void runStarburst() {
     Starburst starburst;
 
-    cv::Mat image = imread("3.jpg",cv::IMREAD_COLOR);
+    cv::Mat image = imread("7.bmp",cv::IMREAD_COLOR);
     cvtColor(image,image,COLOR_BGR2GRAY);
 
     Clock clock;
     double start = clock.getTime();
-    starburst.calculate(image,50,20,2);
+    const int rayCount = 40;
+    const int treshold = 10;
+    const int currentRadius = 6;
+    starburst.calculate(image,rayCount,treshold,currentRadius);
     const double dur = clock.getTime()- start;
     std::cout<<dur<<std::endl;
-    imshow("edges", image);
+    //imshow("edges", image);
     waitKey(0); //break;
 
 
@@ -113,7 +82,7 @@ void runStarburst() {
 }
 int main()
 {
-
+	lookup::buildArray();
 	runStarburst();
     //runHough();
 

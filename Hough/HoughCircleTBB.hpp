@@ -8,9 +8,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "../Helpers/const.hpp"
-#include <string>
-#include <iostream>
-
+#include <cmath>
 
 class HoughCircleMultiThreadInvoker
 {
@@ -93,9 +91,11 @@ public:
 
     void execute(cv::Mat &mat,int min,int max,int treshold,std::vector<cv::Point3f> &circles,int kernelSize) const
     {
-        cv::Point3f *circles2 = new cv::Point3f[1000];
-        cv::Mat * spaces = new cv::Mat[1000];
-        for(int i=0; i<1000; i++)
+
+	const int count=pow((max-min),3);
+        cv::Point3f *circles2 = new cv::Point3f[count];
+        cv::Mat * spaces = new cv::Mat[count];
+        for(int i=0; i<count; i++)
         {
             spaces[i] = cv::Mat::zeros(mat.rows,mat.cols,CV_8U);
         }
@@ -104,15 +104,13 @@ public:
         Sobel(mat, sobelX, CV_16S, 1, 0, kernelSize, 1, 0, cv::BORDER_REPLICATE);
         Sobel(mat, sobelY, CV_16S, 0, 1, kernelSize, 1, 0, cv::BORDER_REPLICATE);
         cv::Canny(mat,mat,100,200,kernelSize,false);
-
-        const int threadNum = std::max(1,cv::getNumThreads());
         tbb::parallel_for(tbb::blocked_range<int>(min,max,1),HoughCircleMultiThreadInvoker(mat,mat,sobelX,sobelY,min,max,kernelSize,treshold,circles2,spaces));
 
         for(int i=min; i<max; i++)
         {
             circles.emplace_back(circles2[i]);
         }
-
+	
         delete []circles2;
         delete [] spaces;
     }

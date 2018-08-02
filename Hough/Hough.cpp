@@ -38,7 +38,7 @@ public:
             max = std::min(mat.cols ,mat.rows)/2;
         }
         //std::vector<cv::Point3f> points(1000);
-        function->execute(mat,min,max,treshold,points,kernelSize);
+	function->execute(mat,min,max,treshold,points,kernelSize);
 
         return points;
 
