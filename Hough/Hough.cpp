@@ -16,33 +16,33 @@
 template <typename Function>
 class Hough
 {
-private:
-    Function * function;
-public:
-    Hough():function(new Function()) {};
+    private:
+        Function* function;
+    public:
+        Hough(): function(new Function()) {};
 
-    ~Hough()
-    {
-        delete function;
-    };
-
-    std::vector<cv::Point3f > calculate(cv::Mat &mat,int min,int max,int treshold,std::vector<cv::Point3f> &points,int kernelSize) const
-    {
-        if(!lookup::arrayBuild)
+        ~Hough()
         {
-            std::cerr<<"BUILD LOOKUP ARRAY"<<std::endl;
-            return std::vector<cv::Point3f>();
-        }
-        if(max>mat.rows)
+            delete function;
+        };
+
+        std::vector<cv::Point3f > calculate(cv::Mat& mat, int min, int max, int treshold, std::vector<cv::Point3f>& points, int kernelSize) const
         {
-            max = std::min(mat.cols ,mat.rows)/2;
+            if (!lookup::arrayBuild)
+            {
+                std::cerr << "BUILD LOOKUP ARRAY" << std::endl;
+                return std::vector<cv::Point3f>();
+            }
+
+            if (max > mat.rows)
+            {
+                max = std::min(mat.cols , mat.rows) / 2;
+            }
+
+            //std::vector<cv::Point3f> points(1000);
+            function->execute(mat, min, max, treshold, points, kernelSize);
+            return points;
         }
-        //std::vector<cv::Point3f> points(1000);
-	function->execute(mat,min,max,treshold,points,kernelSize);
-
-        return points;
-
-    }
 
 };
 
