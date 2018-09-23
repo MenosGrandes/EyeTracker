@@ -26,33 +26,34 @@ void Starburst::calculate(const cv::Mat& image, const int rayCount, const int tr
     ////////////////////////////////
     cv::Point2f pixel;
 
+    int colorOfPixel1,colorOfPixel2;
     for (float angle = 0; angle < 2 * CV_PI; angle += angleStep)
     {
         const cv::Point2f distance(currentRadius * cos(angle), currentRadius * sin(angle));
-        pixel = center + distance; // (center.x + distance.x,center.y + distance.y);
-        const cv::Scalar colorOfPixel(image.at<uchar>(pixel));
-
+        pixel = center + distance; // (center.x + distance.x,center.y + distance.y); //p.x p.y
+        colorOfPixel1 = image.at<uchar>(pixel); // pixel_value1
         while (1)
         {
-            pixel += distance; //cv::Point2f(pixel.x + distance.x,pixel.y + distance.y);
+            pixel += distance; // 129 - 130
 
-            if (pixel.x > image.cols || pixel.y > image.rows || pixel.x < 0 || pixel.y < 0)
+	    if (pixel.x >= image.cols || pixel.y >= image.rows || pixel.x < 0 || pixel.y < 0)
             {
                 break;
             }
+		
 
-            const cv::Scalar differenceInColors = static_cast<const cv::Scalar>(image.at<uchar>(pixel)) - colorOfPixel;
-
-            if (static_cast<int>((differenceInColors)[0]) > treshold)
+           colorOfPixel2= image.at<uchar>(pixel);
+	    if (colorOfPixel2 - colorOfPixel1   > treshold && colorOfPixel2 < 100)
             {
                 const cv::Point2f edgePoint = pixel - distance / 2; // ( pixel.x - distance.x/2,pixel.y - distance.y/2);
 #ifdef DEBUG
                 debug::drawMarker(debugDraw, edgePoint, cv::Scalar(255, 255, 0));
                 debug::drawLine(debugDraw, center, edgePoint, cv::Scalar(200, 100, 100));
 #endif
-                intensityAndPoint_v.emplace_back(static_cast<int>(differenceInColors[0]), edgePoint);
+                intensityAndPoint_v.emplace_back(colorOfPixel2 - colorOfPixel1 , edgePoint);
                 break;
             }
+	    colorOfPixel1 = colorOfPixel2;
         }
     }
 
@@ -75,8 +76,7 @@ void Starburst::calculate(const cv::Mat& image, const int rayCount, const int tr
         {
             const cv::Point2f distance(currentRadius * cos(angle), currentRadius * sin(angle));
             pixel = newCenter.point + distance; // (center.x + distance.x,center.y + distance.y);
-            const cv::Scalar colorOfPixel(image.at<uchar>(pixel));
-
+            colorOfPixel1 = image.at<uchar>(pixel);
             while (1)
             {
                 pixel += distance; //cv::Point2f(pixel.x + distance.x,pixel.y + distance.y);
@@ -85,19 +85,19 @@ void Starburst::calculate(const cv::Mat& image, const int rayCount, const int tr
                 {
                     break;
                 }
+   		colorOfPixel2 = image.at<uchar>(pixel);
 
-                const cv::Scalar differenceInColors = static_cast<const cv::Scalar>(image.at<uchar>(pixel)) - colorOfPixel;
-
-                if (static_cast<int>((differenceInColors)[0]) > treshold)
+                if (colorOfPixel2 - colorOfPixel1  > treshold && colorOfPixel2 <100 )
                 {
                     const cv::Point2f edgePoint = pixel - distance / 2; // ( pixel.x - distance.x/2,pixel.y - distance.y/2);
 #ifdef DEBUG
                     debug::drawMarker(debugDraw2, edgePoint, cv::Scalar(255, 255, 0));
                     debug::drawLine(debugDraw2, newCenter.point, edgePoint, cv::Scalar(200, 100, 100));
 #endif
-                    intensityAndPoint_v.emplace_back(static_cast<int>(differenceInColors[0]), edgePoint);
+                    intensityAndPoint_v.emplace_back(colorOfPixel2 - colorOfPixel1, edgePoint);
                     break;
                 }
+		colorOfPixel1 = colorOfPixel2;
             }
         }
     }
@@ -106,4 +106,11 @@ void Starburst::calculate(const cv::Mat& image, const int rayCount, const int tr
     imshow("initial", debugDraw);
     imshow("second", debugDraw2);
 #endif
+
+
+   
+
+//fit_ellipse(intensityAndPoint_v
+
+
 }

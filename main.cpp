@@ -43,7 +43,7 @@ void runHough()
         cv::waitKey(0); //break;
     }
 }
-
+	
 
 
 
@@ -51,20 +51,32 @@ void runHough()
 
 void runStarburst()
 {
+	const int numberOfImages = 7;
+//	for( int i=0;i<numberOfImages;i++)
+//	{
+		std::stringstream ss;
+		ss<<"images/"<<numberOfImages<<".png";
     Starburst starburst;
-    cv::Mat image = imread("3.jpg", cv::IMREAD_COLOR);
+    cv::Mat image = imread(ss.str(), cv::IMREAD_COLOR);
     cvtColor(image, image, cv::COLOR_BGR2GRAY);
     Clock clock;
     double start = clock.getTime();
-    const int rayCount = 40;
+    const int rayCount = 20;
     const int treshold = 10;
     const int currentRadius = 6;
     starburst.calculate(image, rayCount, treshold, currentRadius);
+
+
+
     const double dur = clock.getTime() - start;
     std::cout << dur << std::endl;
     //imshow("edges", image);
     cv::waitKey(0); //break;
+    ss.str("");
+//	}
 }
+
+
 int main()
 {
     lookup::buildArray();
