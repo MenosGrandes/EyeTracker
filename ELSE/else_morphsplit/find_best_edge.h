@@ -117,12 +117,7 @@ namespace ELSE
             return false;
         }
     }
-
-
-
-
-
-    static int calc_inner_gray(cv::Mat* pic, std::vector<cv::Point> curve, cv::RotatedRect ellipse)
+   static int calc_inner_gray(cv::Mat* pic, std::vector<cv::Point> curve, cv::RotatedRect ellipse)
     {
         int gray_val = 0;
         int gray_cnt = 0;

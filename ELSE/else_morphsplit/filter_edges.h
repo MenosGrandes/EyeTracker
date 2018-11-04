@@ -61,6 +61,7 @@ namespace ELSE
         }
 
         for (int j = start_y; j < end_y; j++)
+        {
             for (int i = start_x; i < end_x; i++)
             {
                 int box[9];
@@ -94,9 +95,11 @@ namespace ELSE
                     }
                 }
             }
+        }
 
         //too many neigbours
         for (int j = start_y; j < end_y; j++)
+        {
             for (int i = start_x; i < end_x; i++)
             {
                 int neig = 0;
@@ -115,8 +118,10 @@ namespace ELSE
                     edge->data[(edge->cols * (j)) + (i)] = 0;
                 }
             }
+        }
 
         for (int j = start_y; j < end_y; j++)
+        {
             for (int i = start_x; i < end_x; i++)
             {
                 int box[17];
@@ -177,8 +182,10 @@ namespace ELSE
                     }
                 }
             }
+        }
 
         for (int j = start_y; j < end_y; j++)
+        {
             for (int i = start_x; i < end_x; i++)
             {
                 int box[33];
@@ -318,6 +325,7 @@ namespace ELSE
                     }
                 }
             }
+        }
     }
 
 

@@ -1,8 +1,4 @@
-
-
-
-/*
-Copyright 2015 Universität Tübingen
+/*Copyright 2015 Universität Tübingen
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software
 and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -40,22 +36,6 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 namespace ELSE
 {
 
-
-    static float hypot(float a, float b)
-    {
-        a = std::abs(a);
-        b = std::abs(b);
-        float t = a < b ? a : b;
-        float x = a > b ? a : b;
-
-        if (x == 0)
-        {
-            return 0;
-        }
-
-        t = t / x;
-        return x * sqrt(1 + (t * t));
-    }
 #define MAX_LINE 10000
 
     static void matlab_bwselect(cv::Mat* strong, cv::Mat* weak, cv::Mat* check)
@@ -108,7 +88,7 @@ namespace ELSE
 
 
 
-    static cv::Mat canny_impl(cv::Mat* pic, cv::Mat* magni)
+    static cv::Mat canny_impl(cv::Mat* pic)
     {
         int k_sz = 16;
         float gau[16] = {0.000000220358050, 0.000007297256405, 0.000146569312970, 0.001785579770079,
@@ -137,27 +117,23 @@ namespace ELSE
         cv::transpose(res_y, res_y);
         filter2D(res_y, res_y, ddepth , deriv_gau_x, anchor, delta, cv::BORDER_REPLICATE);
         cv::transpose(res_y, res_y);
-        *magni = cv::Mat::zeros(pic->rows, pic->cols, CV_32FC1);
+	cv::Mat magnitude = cv::Mat::zeros(pic->rows, pic->cols, CV_32FC1);
         float* p_res, *p_x, *p_y;
 
-        for (int i = 0; i < magni->rows; i++)
+        for (int i = 0; i < magnitude.rows; i++)
         {
-            p_res = magni->ptr<float>(i);
+            p_res = magnitude.ptr<float>(i);
             p_x = res_x.ptr<float>(i);
             p_y = res_y.ptr<float>(i);
 
-            for (int j = 0; j < magni->cols; j++)
+            for (int j = 0; j < magnitude.cols; j++)
             {
-                //res.at<float>(j, i)= sqrt( (res_x.at<float>(j, i)*res_x.at<float>(j, i)) + (res_y.at<float>(j, i)*res_y.at<float>(j, i)) );
-                //res.at<float>(j, i)=robust_pytagoras_after_MOLAR_MORRIS(res_x.at<float>(j, i), res_y.at<float>(j, i));
-                //res.at<float>(j, i)=hypot(res_x.at<float>(j, i), res_y.at<float>(j, i));
-                //p_res[j]=__ieee754_hypot(p_x[j], p_y[j]);
-                p_res[j] = hypot(p_x[j], p_y[j]);
+                p_res[j] = std::hypot(p_x[j], p_y[j]);
             }
         }
 
         //th selection
-        int PercentOfPixelsNotEdges = 0.7 * magni->cols * magni->rows;
+        int PercentOfPixelsNotEdges = 0.7 * magnitude.cols * magnitude.rows;
         float ThresholdRatio = 0.4;
         float high_th = 0;
         float low_th = 0;
@@ -169,16 +145,16 @@ namespace ELSE
             hist[i] = 0;
         }
 
-        cv::normalize(*magni, *magni, 0, 1, cv::NORM_MINMAX, CV_32FC1);
+        cv::normalize(magnitude, magnitude, 0, 1, cv::NORM_MINMAX, CV_32FC1);
         cv::Mat res_idx = cv::Mat::zeros(pic->rows, pic->cols, CV_8U);
-        cv::normalize(*magni, res_idx, 0, 63, cv::NORM_MINMAX, CV_32S);
+        cv::normalize(magnitude, res_idx, 0, 63, cv::NORM_MINMAX, CV_32S);
         int* p_res_idx = 0;
 
-        for (int i = 0; i < magni->rows; i++)
+        for (int i = 0; i < magnitude.rows; i++)
         {
             p_res_idx = res_idx.ptr<int>(i);
 
-            for (int j = 0; j < magni->cols; j++)
+            for (int j = 0; j < magnitude.cols; j++)
             {
                 hist[p_res_idx[j]]++;
             }
@@ -202,20 +178,20 @@ namespace ELSE
         cv::Mat non_ms = cv::Mat::zeros(pic->rows, pic->cols, CV_8U);
         cv::Mat non_ms_hth = cv::Mat::zeros(pic->rows, pic->cols, CV_8U);
         float ix, iy, grad1, grad2, d;
-        char* p_non_ms, *p_non_ms_hth;
+       unsigned char* p_non_ms, *p_non_ms_hth;
         float* p_res_t, *p_res_b;
 
-        for (int i = 1; i < magni->rows - 1; i++)
+        for (int i = 1; i < magnitude.rows - 1; i++)
         {
-            p_non_ms = non_ms.ptr<char>(i);
-            p_non_ms_hth = non_ms_hth.ptr<char>(i);
-            p_res = magni->ptr<float>(i);
-            p_res_t = magni->ptr<float>(i - 1);
-            p_res_b = magni->ptr<float>(i + 1);
+            p_non_ms = non_ms.ptr<unsigned char>(i);
+            p_non_ms_hth = non_ms_hth.ptr<unsigned char>(i);
+            p_res = magnitude.ptr<float>(i);
+            p_res_t = magnitude.ptr<float>(i - 1);
+            p_res_b = magnitude.ptr<float>(i + 1);
             p_x = res_x.ptr<float>(i);
             p_y = res_y.ptr<float>(i);
 
-            for (int j = 1; j < magni->cols - 1; j++)
+            for (int j = 1; j < magnitude.cols - 1; j++)
             {
                 iy = p_y[j];
                 ix = p_x[j];
@@ -296,7 +272,4 @@ namespace ELSE
         pic->convertTo(*pic, CV_8U);
         return res_lin;
     }
-
-
-
 }

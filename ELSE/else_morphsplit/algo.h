@@ -29,9 +29,6 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/core.hpp>
-
-
-
 #include "find_best_edge.h"
 #include "canny_impl.h"
 #include "blob_gen.h"
@@ -40,7 +37,7 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace ELSE
 {
-     	static cv::RotatedRect run(cv::Mat input_img)
+    static cv::RotatedRect run(cv::Mat input_img)
     {
         float rz_fakk = float(input_img.cols) / 384.0;
         cv::Mat pic = cv::Mat::zeros(input_img.rows / rz_fakk, input_img.cols / rz_fakk, CV_8UC1);
@@ -56,7 +53,6 @@ namespace ELSE
         int end_x = pic.cols - start_x;
         int end_y = pic.rows - start_y;
         cv::Mat picpic = cv::Mat::zeros(end_y - start_y, end_x - start_x, CV_8U);
-        cv::Mat magni;
 
         for (int i = 0; i < picpic.cols; i++)
             for (int j = 0; j < picpic.rows; j++)
@@ -64,8 +60,13 @@ namespace ELSE
                 picpic.data[(picpic.cols * j) + i] = pic.data[(pic.cols * (start_y + j)) + (start_x + i)];
             }
 
-        cv::Mat detected_edges2 = canny_impl(&picpic, &magni);//Check if you cannot change it to cv::Canny
-        cv::Mat detected_edges = cv::Mat::zeros(pic.rows, pic.cols, CV_8U);
+        cv::Mat detected_edges2 =  canny_impl(&picpic);//Check if you cannot change it to cv::Canny
+
+	cv::Mat detected_edges = cv::Mat::zeros(pic.rows, pic.cols, CV_8U);
+	cv::Mat canny;
+	cv::Canny(picpic,canny,0,100);
+	imshow("canny", canny);
+	imshow("detected_edges2", detected_edges2);
 
         for (int i = 0; i < detected_edges2.cols; i++)
             for (int j = 0; j < detected_edges2.rows; j++)
@@ -73,7 +74,9 @@ namespace ELSE
                 detected_edges.data[(detected_edges.cols * (start_y + j)) + (start_x + i)] = detected_edges2.data[(detected_edges2.cols * j) + i];
             }
 
+        imshow("aa2", detected_edges2);
         filter_edges(&detected_edges, start_x, end_x, start_y, end_y);
+        imshow("filter_edge", detected_edges);
         ellipse = find_best_edge(&pic, &detected_edges, start_x, end_x, start_y, end_y, mean_dist, inner_color_range);
 
         if (ellipse.center.x <= 0 && ellipse.center.y <= 0 || ellipse.center.x >= pic.cols || ellipse.center.y >= pic.rows)
