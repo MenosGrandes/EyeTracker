@@ -51,7 +51,7 @@ void runHough()
 
 void runStarburst()
 {
-	const int numberOfImages = 7;
+	const int numberOfImages = 1;
 //	for( int i=0;i<numberOfImages;i++)
 //	{
 		std::stringstream ss;
@@ -70,7 +70,7 @@ void runStarburst()
 
     const double dur = clock.getTime() - start;
     std::cout << dur << std::endl;
-    //imshow("edges", image);
+    imshow("edges", image);
     cv::waitKey(0); //break;
     ss.str("");
 //	}
