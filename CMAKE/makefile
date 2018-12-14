@@ -1,11 +1,11 @@
 CC = g++
-CFLAGS = -g -p -Wall -std=c++11 -ltbb
+CFLAGS = -g -p -Wall -std=c++11 
 SRCS = main.cpp
 PROG = eyeDetection
 BIN = bin
 MKDIR_P = mkdir -p $(BIN)
-OPENCV = `pkg-config --libs --cflags opencv` 
-LIBS = $(OPENCV)
+OPENCV = `pkg-config --libs --cflags opencv4` 
+LIBS = $(OPENCV) -ltbb
 RM = rm -rf
 
 

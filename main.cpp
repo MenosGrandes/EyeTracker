@@ -16,8 +16,8 @@ void runHough()
     cv::Mat gray;
     {
         int bright = 10;
-        cvNamedWindow("video");
-        cvCreateTrackbar("brightness", "video", &bright, 255, NULL);
+	cv::namedWindow("video");
+	cv::createTrackbar("brightness", "video", &bright, 255, NULL);
         cv::Mat frame = imread("3.jpg", cv::IMREAD_COLOR)    ;
         cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
         cv::Mat hough_accum = frame.clone();//(frame.size,frame.type());
